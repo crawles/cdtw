@@ -1,0 +1,30 @@
+#import pyximport
+#pyximport.install(reload_support=True)
+
+from IPython import get_ipython
+ipython = get_ipython()
+
+import numpy as np
+import trace
+import dist
+import dtw
+import cdtw
+
+x = np.array(trace.data[0:700])
+y = np.array(trace.data[0:700])
+
+dist,cost,path = cdtw.dtw(x,y)
+#dist1,cost1,path1 = dtw.dtw(x,y)
+
+plt.close()
+vm = 4000
+plt.imshow(cost, origin='lower', vmin= 0,vmax=vm,interpolation='nearest')
+plt.colorbar()
+
+#plt.subplot(1,2,1)
+#plt.imshow(cost1, origin='lower', vmin= 0,vmax=vm,interpolation='nearest')
+#plt.subplot(1,2,2)
+#plt.imshow(cost, origin='lower', vmin= 0,vmax=vm,interpolation='nearest')
+#plt.colorbar()
+
+

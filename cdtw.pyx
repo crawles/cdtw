@@ -19,7 +19,7 @@ ctypedef np.double_t DTYPE_t
 @cython.boundscheck(False)
 def dtw(np.ndarray[DTYPE_t,ndim=1] x,np.ndarray[DTYPE_t, ndim=1] y,float mp = .1):
     """ Performs a bounded DTW. Returns 1) cumulative distance, 2) cumulative
-    distance matric 3) x,y mapping. 
+    distance matrix 3) x,y mapping. 
     
     Keyword arguments:
     x  -- the real part
