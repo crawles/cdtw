@@ -10,16 +10,20 @@ import dtw
 import cdtw
 import cdtw_window
 
-x = np.array(trace.data[0:200])
+x = np.array(trace.data[0:70])
 xs = np.array([x,x,x,x])
-y = np.array(trace.data[50:100])
+y = np.array(trace.data[0:70])
 ys = np.array([y,y])
 
-#d = cdtw.dtw(x,y)
+import time
+a = time.time()
+D,d = cdtw.dtw(x,y,mp=.05)
+b = time.time()
+b - a
 #d = dtw.dtw(x,y)
 
 #%timeit -n2 -r3 cdtw.dtw(x,y)
 #%timeit -n2 -r3 dtw.dtw(x,y)
 #D = cdtw.window(x[80:150],y)
 
-dists = cdtw_window.compute_similarity(xs,ys)
+#dists = cdtw_window.compute_similarity(xs,ys)

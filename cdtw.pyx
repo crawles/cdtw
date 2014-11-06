@@ -40,52 +40,53 @@ def dtw(np.ndarray[DTYPE_t,ndim=1] x,np.ndarray[DTYPE_t, ndim=1] y,float mp = .1
     ### cost matrix ###
     cdef unsigned int inc = 0
     cdef unsigned int i,j
-    cdef unsigned int pad = 200
+    #cdef unsigned int pad = 200
+    cdef unsigned int pad = 0
 
-    cdef int m = int(mp)
-    #TODO test bounding code
-#    mpad = m + pad
-#    for i in range(mpad):
-#        for j in range(mpad+inc):
-#            D[<unsigned int>(i+1),<unsigned int>(j+1)] = abs(x[i] - y[j])
-#        inc += 1
-#    inc = 1
-#    for i in range(mpad,(r-mpad)):
-#        for j in range(inc, (inc + (2*mpad))):
-#            D[<unsigned int>(i+1),<unsigned int>(j+1)] = abs(x[i] - y[j])
-#        inc += 1
-#    inc = 0
-#    for i in range(r-mpad,r):
-#        for j in range((c - (2*mpad) + inc),c):
-#            D[<unsigned int>(i+1),<unsigned int>(j+1)] = abs(x[i] - y[j])
-#        inc += 1
-#
-#   ### cummulative cost matrix ###
-#    inc = 0
-#    for i in range(m):
-#        for j in range(m+inc):
-#            D[<unsigned int>(i+1),<unsigned int>(j+1)] += \
-#                    min(D[i, j], D[i, j+1], D[i+1, j])
-#        inc += 1
-#    inc = 1
-#    for i in range(m,(r-m)):
-#        for j in range(inc, (inc + (2*m))):
-#            D[<unsigned int>(i+1),<unsigned int>(j+1)] += \
-#                    min(D[i, j], D[i, j+1], D[i+1, j])
-#        inc += 1
-#    inc = 0
-#    for i in range(r-m,r):
-#        for j in range((c - (2*m) + inc),c):
-#            D[<unsigned int>(i+1),<unsigned int>(j+1)] += \
-#                    min(D[i, j], D[i, j+1], D[i+1, j])
-#        inc += 1
+    #cdef int m = int(mp)
+    ##TODO test bounding code
+    #mpad = m + pad
+    #for i in range(mpad):
+    #    for j in range(mpad+inc):
+    #        D[<unsigned int>(i+1),<unsigned int>(j+1)] = abs(x[i] - y[j])
+    #    inc += 1
+    #inc = 1
+    #for i in range(mpad,(r-mpad)):
+    #    for j in range(inc, (inc + (2*mpad))):
+    #        D[<unsigned int>(i+1),<unsigned int>(j+1)] = abs(x[i] - y[j])
+    #    inc += 1
+    #inc = 0
+    #for i in range(r-mpad,r):
+    #    for j in range((c - (2*mpad) + inc),c):
+    #        D[<unsigned int>(i+1),<unsigned int>(j+1)] = abs(x[i] - y[j])
+    #    inc += 1
+
+   #### cummulative cost matrix ###
+    #inc = 0
+    #for i in range(m):
+    #    for j in range(m+inc):
+    #        D[<unsigned int>(i+1),<unsigned int>(j+1)] += \
+    #                min(D[i, j], D[i, j+1], D[i+1, j])
+    #    inc += 1
+    #inc = 1
+    #for i in range(m,(r-m)):
+    #    for j in range(inc, (inc + (2*m))):
+    #        D[<unsigned int>(i+1),<unsigned int>(j+1)] += \
+    #                min(D[i, j], D[i, j+1], D[i+1, j])
+    #    inc += 1
+    #inc = 0
+    #for i in range(r-m,r):
+    #    for j in range((c - (2*m) + inc),c):
+    #        D[<unsigned int>(i+1),<unsigned int>(j+1)] += \
+    #                min(D[i, j], D[i, j+1], D[i+1, j])
+    #    inc += 1
 
     ###############################
     ##unbounded
     #NOTE unbounded
     for i in range(r):
         for j in range(c):
-            D[<unsigned int>(i+1),<unsigned int>(j+1)] = abs(x[i] - y[j])
+            D[<unsigned int>(i+1),<unsigned int>(j+1)] = (abs(x[i] - y[j]) 
 
     for i in range(r):
         for j in range(c):
@@ -96,7 +97,7 @@ def dtw(np.ndarray[DTYPE_t,ndim=1] x,np.ndarray[DTYPE_t, ndim=1] y,float mp = .1
     
     cdef float dist = D[-1, -1]
 
-    return dist
+    return D,dist
     #return dist,D, _trackeback(D)
 
 def _trackeback(D):
