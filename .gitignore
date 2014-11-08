@@ -5,4 +5,4 @@ build
 test.py
 trace.py
 viz.py
-*window*
+setup_window.py
