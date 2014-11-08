@@ -3,4 +3,6 @@
 *html
 build
 test.py
+trace.py
 viz.py
+*window*
