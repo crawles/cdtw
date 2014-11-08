@@ -38,6 +38,7 @@ def dtw_unbound(np.ndarray[DTYPE_t,ndim=1] x,np.ndarray[DTYPE_t, ndim=1] y):
     for i in range(r):
         for j in range(c):
             D[<unsigned int>(i+1),<unsigned int>(j+1)] = abs(x[i] - y[j]) 
+            #D[<unsigned int>(i+1),<unsigned int>(j+1)] = square(x[i] - y[j])
 
     for i in range(r):
         for j in range(c):
@@ -48,7 +49,8 @@ def dtw_unbound(np.ndarray[DTYPE_t,ndim=1] x,np.ndarray[DTYPE_t, ndim=1] y):
     
     cdef float dist = D[-1, -1]
 
-    return (dist,D)#, _trackeback(D)
+    return dist,D
+    #return (dist,D), _trackeback(D)
 
 @cython.boundscheck(False)
 def dtw_bound(np.ndarray[DTYPE_t,ndim=1] x,np.ndarray[DTYPE_t, ndim=1] y,float mp = .1):
@@ -71,7 +73,7 @@ def dtw_bound(np.ndarray[DTYPE_t,ndim=1] x,np.ndarray[DTYPE_t, ndim=1] y,float m
     #cost matrix
     cdef unsigned int inc = 0
     cdef unsigned int i,j
-    cdef int m = int(mp*100)
+    cdef int m = int(mp*r) #TODO r == c 
     cdef unsigned int pad = 0
     mpad = m + pad #TODO does this work?
 
@@ -110,13 +112,13 @@ def dtw_bound(np.ndarray[DTYPE_t,ndim=1] x,np.ndarray[DTYPE_t, ndim=1] y,float m
                     min(D[i, j], D[i, j+1], D[i+1, j])
         inc += 1
 
-
     D = D[1:, 1:]
     
     cdef float dist = D[-1, -1]
 
-    return D
-    #return dist,D, _trackeback(D)
+    return dist,D#, _trackeback(D)
+
+cdef inline square(x): return x * x
 
 def _trackeback(D):
     #source: github.com/pierre-rouanet/dtw
