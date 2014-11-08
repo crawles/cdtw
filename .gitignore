@@ -2,7 +2,7 @@
 *.so
 *html
 build
-test.py
-trace.py
-viz.py
+test*
+trace*
+viz*
 setup_window.py
