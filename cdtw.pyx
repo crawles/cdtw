@@ -7,8 +7,6 @@ author: Chris Rawles
 git:    https://github.com/crawles
 
 """
-
-
 import numpy as np
 cimport numpy as np
 import cython
@@ -17,8 +15,8 @@ DTYPE = np.double
 ctypedef np.double_t DTYPE_t
 
 @cython.boundscheck(False)
-def dtw(np.ndarray[DTYPE_t,ndim=1] x,np.ndarray[DTYPE_t, ndim=1] y,float mp = .1):
-    """ Performs a bounded DTW. Returns 1) cumulative distance, 2) cumulative
+def dtw_unbound(np.ndarray[DTYPE_t,ndim=1] x,np.ndarray[DTYPE_t, ndim=1] y):
+    """ Performs an un-bounded DTW. Returns 1) cumulative distance, 2) cumulative
     distance matrix 3) x,y mapping. 
     
     Keyword arguments:
@@ -26,67 +24,20 @@ def dtw(np.ndarray[DTYPE_t,ndim=1] x,np.ndarray[DTYPE_t, ndim=1] y,float mp = .1
     y  -- the imaginary part
     mp -- percent of window for lower bound
     """
-    #TODO
-    #NOTE len(x) must == len(y)
 
     cdef int r = x.shape[0]
     cdef int c = y.shape[0]
-
     cdef np.ndarray[DTYPE_t, ndim = 2] D = np.zeros([r + 1, c + 1], dtype=DTYPE)
-
     D[0, 1:] = float('inf')
     D[1:, 0] = float('inf')
 
     ### cost matrix ###
     cdef unsigned int inc = 0
     cdef unsigned int i,j
-    #cdef unsigned int pad = 200
-    cdef unsigned int pad = 0
 
-    #cdef int m = int(mp)
-    ##TODO test bounding code
-    #mpad = m + pad
-    #for i in range(mpad):
-    #    for j in range(mpad+inc):
-    #        D[<unsigned int>(i+1),<unsigned int>(j+1)] = abs(x[i] - y[j])
-    #    inc += 1
-    #inc = 1
-    #for i in range(mpad,(r-mpad)):
-    #    for j in range(inc, (inc + (2*mpad))):
-    #        D[<unsigned int>(i+1),<unsigned int>(j+1)] = abs(x[i] - y[j])
-    #    inc += 1
-    #inc = 0
-    #for i in range(r-mpad,r):
-    #    for j in range((c - (2*mpad) + inc),c):
-    #        D[<unsigned int>(i+1),<unsigned int>(j+1)] = abs(x[i] - y[j])
-    #    inc += 1
-
-   #### cummulative cost matrix ###
-    #inc = 0
-    #for i in range(m):
-    #    for j in range(m+inc):
-    #        D[<unsigned int>(i+1),<unsigned int>(j+1)] += \
-    #                min(D[i, j], D[i, j+1], D[i+1, j])
-    #    inc += 1
-    #inc = 1
-    #for i in range(m,(r-m)):
-    #    for j in range(inc, (inc + (2*m))):
-    #        D[<unsigned int>(i+1),<unsigned int>(j+1)] += \
-    #                min(D[i, j], D[i, j+1], D[i+1, j])
-    #    inc += 1
-    #inc = 0
-    #for i in range(r-m,r):
-    #    for j in range((c - (2*m) + inc),c):
-    #        D[<unsigned int>(i+1),<unsigned int>(j+1)] += \
-    #                min(D[i, j], D[i, j+1], D[i+1, j])
-    #    inc += 1
-
-    ###############################
-    ##unbounded
-    #NOTE unbounded
     for i in range(r):
         for j in range(c):
-            D[<unsigned int>(i+1),<unsigned int>(j+1)] = (abs(x[i] - y[j]) 
+            D[<unsigned int>(i+1),<unsigned int>(j+1)] = abs(x[i] - y[j]) 
 
     for i in range(r):
         for j in range(c):
@@ -97,7 +48,74 @@ def dtw(np.ndarray[DTYPE_t,ndim=1] x,np.ndarray[DTYPE_t, ndim=1] y,float mp = .1
     
     cdef float dist = D[-1, -1]
 
-    return D,dist
+    return (dist,D)#, _trackeback(D)
+
+@cython.boundscheck(False)
+def dtw_bound(np.ndarray[DTYPE_t,ndim=1] x,np.ndarray[DTYPE_t, ndim=1] y,float mp = .1):
+    """ Performs an un-bounded DTW. Returns 1) cumulative distance, 2) cumulative
+    distance matrix 3) x,y mapping. 
+    
+    Keyword arguments:
+    x  -- the real part
+    y  -- the imaginary part
+    mp -- percent of window for lower bound
+    """
+    #TODO testing
+    #TODO/NOTE len(x) must == len(y)
+    cdef int r = x.shape[0]
+    cdef int c = y.shape[0]
+    cdef np.ndarray[DTYPE_t, ndim = 2] D = np.zeros([r + 1, c + 1], dtype=DTYPE)
+    D[0, 1:] = float('inf')
+    D[1:, 0] = float('inf')
+
+    #cost matrix
+    cdef unsigned int inc = 0
+    cdef unsigned int i,j
+    cdef int m = int(mp*100)
+    cdef unsigned int pad = 0
+    mpad = m + pad #TODO does this work?
+
+    for i in range(mpad):
+        for j in range(mpad+inc):
+            D[<unsigned int>(i+1),<unsigned int>(j+1)] = abs(x[i] - y[j])
+        inc += 1
+    inc = 1
+    for i in range(mpad,(r-mpad)):
+        for j in range(inc, (inc + (2*mpad))):
+            D[<unsigned int>(i+1),<unsigned int>(j+1)] = abs(x[i] - y[j])
+        inc += 1
+    inc = 0
+    for i in range(r-mpad,r):
+        for j in range((c - (2*mpad) + inc),c):
+            D[<unsigned int>(i+1),<unsigned int>(j+1)] = abs(x[i] - y[j])
+        inc += 1
+
+   #cummulative cost matrix
+    inc = 0
+    for i in range(m):
+        for j in range(m+inc):
+            D[<unsigned int>(i+1),<unsigned int>(j+1)] += \
+                    min(D[i, j], D[i, j+1], D[i+1, j])
+        inc += 1
+    inc = 1
+    for i in range(m,(r-m)):
+        for j in range(inc, (inc + (2*m))):
+            D[<unsigned int>(i+1),<unsigned int>(j+1)] += \
+                    min(D[i, j], D[i, j+1], D[i+1, j])
+        inc += 1
+    inc = 0
+    for i in range(r-m,r):
+        for j in range((c - (2*m) + inc),c):
+            D[<unsigned int>(i+1),<unsigned int>(j+1)] += \
+                    min(D[i, j], D[i, j+1], D[i+1, j])
+        inc += 1
+
+
+    D = D[1:, 1:]
+    
+    cdef float dist = D[-1, -1]
+
+    return D
     #return dist,D, _trackeback(D)
 
 def _trackeback(D):

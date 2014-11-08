@@ -37,6 +37,7 @@ def window(x,y,num_windows):
 
 def compute_similarity(np.ndarray[DTYPE_t,ndim=3] test_set,\
         np.ndarray[DTYPE_t,ndim=2] train_set):
+    print 1
     cdef unsigned int test_len    = test_set.shape[0]
     cdef unsigned int train_len   = train_set.shape[0]
     cdef unsigned int window_len  = train_set.shape[1]
@@ -44,13 +45,29 @@ def compute_similarity(np.ndarray[DTYPE_t,ndim=3] test_set,\
     cdef np.ndarray[DTYPE_t, ndim = 3] ref_tr_dtw = \
             np.zeros([num_windows, test_len, train_len], dtype=DTYPE)
 
+    for i2 in range(train_len):
+        train_set[i2,:] = _mpt_scale(train_set[i2,:])
+        
+    
     for i3 in range(test_len):
         for i2 in range(train_len):
             x = test_set[i3,:] 
-            y = train_set[i2,:]
+            y = _mpt_scale(train_set[i2,:])
             for i1 in range(num_windows):
                 xi = x[i1:i1+window_len]
                 d = cdtw.dtw(xi,y)
                 ref_tr_dtw[i1,i3,i2] = d
     return ref_tr_dtw
     
+
+def _mpt_scale(x):
+    x = abs(x)
+    cdef int i
+    cdef int xlen = x.shape[0]
+    cdef np.ndarray[DTYPE_t, ndim = 1] x2 = np.zeros(xlen/2)
+    for i in range(0,xlen/2):
+        x2[<unsigned int> i] = x[<unsigned int> i]
+    cdef float scalar = np.mean(x2)
+    return (x/scalar)
+
+
