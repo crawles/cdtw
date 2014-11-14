@@ -22,7 +22,6 @@ def dtw_unbound(np.ndarray[DTYPE_t,ndim=1] x,np.ndarray[DTYPE_t, ndim=1] y):
     Keyword arguments:
     x  -- the real part
     y  -- the imaginary part
-    mp -- percent of window for lower bound
     """
 
     cdef int r = x.shape[0]
@@ -49,8 +48,8 @@ def dtw_unbound(np.ndarray[DTYPE_t,ndim=1] x,np.ndarray[DTYPE_t, ndim=1] y):
     
     cdef float dist = D[-1, -1]
 
-    return dist,D
-    #return (dist,D), _trackeback(D)
+#    return dist,D
+    return (dist,D)#, _trackeback(D)
 
 @cython.boundscheck(False)
 def dtw_bound(np.ndarray[DTYPE_t,ndim=1] x,np.ndarray[DTYPE_t, ndim=1] y,float mp = .1):
@@ -74,7 +73,7 @@ def dtw_bound(np.ndarray[DTYPE_t,ndim=1] x,np.ndarray[DTYPE_t, ndim=1] y,float m
     cdef unsigned int inc = 0
     cdef unsigned int i,j
     cdef int m = int(mp*r) #TODO r == c 
-    cdef unsigned int pad = 0
+    cdef unsigned int pad = 10 
     mpad = m + pad #TODO does this work?
 
     for i in range(mpad):
@@ -92,25 +91,39 @@ def dtw_bound(np.ndarray[DTYPE_t,ndim=1] x,np.ndarray[DTYPE_t, ndim=1] y,float m
             D[<unsigned int>(i+1),<unsigned int>(j+1)] = abs(x[i] - y[j])
         inc += 1
 
-   #cummulative cost matrix
-    inc = 0
-    for i in range(m):
-        for j in range(m+inc):
+    for i in range(r):
+        for j in range(c):
             D[<unsigned int>(i+1),<unsigned int>(j+1)] += \
                     min(D[i, j], D[i, j+1], D[i+1, j])
-        inc += 1
-    inc = 1
-    for i in range(m,(r-m)):
-        for j in range(inc, (inc + (2*m))):
-            D[<unsigned int>(i+1),<unsigned int>(j+1)] += \
-                    min(D[i, j], D[i, j+1], D[i+1, j])
-        inc += 1
-    inc = 0
-    for i in range(r-m,r):
-        for j in range((c - (2*m) + inc),c):
-            D[<unsigned int>(i+1),<unsigned int>(j+1)] += \
-                    min(D[i, j], D[i, j+1], D[i+1, j])
-        inc += 1
+
+
+#    ### TESTING ###
+#    for i in range(r):
+#        for j in range(c):
+#            D[<unsigned int>(i+1),<unsigned int>(j+1)] = abs(x[i] - y[j]) 
+#            #D[<unsigned int>(i+1),<unsigned int>(j+1)] = square(x[i] - y[j])
+#    ### TESTING ###
+
+
+#   #cummulative cost matrix
+#    inc = 0
+#    for i in range(m):
+#        for j in range(m+inc):
+#            D[<unsigned int>(i+1),<unsigned int>(j+1)] += \
+#                    min(D[i, j], D[i, j+1], D[i+1, j])
+#        inc += 1
+#    inc = 1
+#    for i in range(m,(r-m)):
+#        for j in range(inc, (inc + (2*m))):
+#            D[<unsigned int>(i+1),<unsigned int>(j+1)] += \
+#                    min(D[i, j], D[i, j+1], D[i+1, j])
+#        inc += 1
+#    inc = 0
+#    for i in range(r-m,r):
+#        for j in range((c - (2*m) + inc),c):
+#            D[<unsigned int>(i+1),<unsigned int>(j+1)] += \
+#                    min(D[i, j], D[i, j+1], D[i+1, j])
+#        inc += 1
 
     D = D[1:, 1:]
     
